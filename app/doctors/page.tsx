@@ -129,8 +129,15 @@ const DoctorsPage = () => {
                 onClick={() => setSelectedId(null)}
                 className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg"
               >
+                Prendre rendez vous
+              </motion.button>
+              <motion.button
+                onClick={() => setSelectedId(null)}
+                className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg"
+              >
                 Close
               </motion.button>
+            
             </div>
           </motion.div>
         )}

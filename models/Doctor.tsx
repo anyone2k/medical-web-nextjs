@@ -19,6 +19,7 @@ export interface Doctor {
       country: string;
     };
   };
+  availability: string[]; // Jours disponibles (par exemple ["Monday", "Wednesday", "Friday"])
   isActive: boolean;
   createdAt: Date;
 }

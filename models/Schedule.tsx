@@ -1,26 +1,22 @@
-import mongoose, { Schema, Document } from "mongoose";
+import mongoose, { Schema, Document, Model } from "mongoose";
 
-// Interface pour le schéma TypeScript
-interface ISchedule extends Document {
-  schedule: {
-    appointments: mongoose.Types.ObjectId[];
-  };
-  doctor: mongoose.Schema.Types.ObjectId;
-  addAppointment(appointment: mongoose.Types.ObjectId): Promise<ISchedule>;
-  removeAppointment(schId: mongoose.Types.ObjectId): Promise<ISchedule>;
+// Interface TypeScript pour le modèle Schedule
+export interface ISchedule extends Document {
+  doctor: mongoose.Types.ObjectId;
+  appointments: mongoose.Types.ObjectId[];
+  addAppointment: (appointment: mongoose.Types.ObjectId) => Promise<ISchedule>;
+  removeAppointment: (schId: mongoose.Types.ObjectId) => Promise<ISchedule>;
 }
 
-// Définition du schéma Mongoose
+// Schéma Mongoose pour le modèle Schedule
 const scheduleSchema = new Schema<ISchedule>({
-  schedule: {
-    appointments: [
-      {
-        type: Schema.Types.ObjectId,
-        ref: "Appointment",
-        default: [],
-      },
-    ],
-  },
+  appointments: [
+    {
+      type: Schema.Types.ObjectId,
+      ref: "Appointment",
+      default: [],
+    },
+  ],
   doctor: {
     type: Schema.Types.ObjectId,
     ref: "Doctor",
@@ -28,25 +24,25 @@ const scheduleSchema = new Schema<ISchedule>({
   },
 });
 
-// Ajout d'un rendez-vous
-scheduleSchema.methods.addAppointment = function (appointment: mongoose.Types.ObjectId) {
-  const updatedAppointments = [...this.schedule.appointments];
-  updatedAppointments.push(appointment);
-
-  this.schedule.appointments = updatedAppointments;
+// Ajouter une méthode pour ajouter un rendez-vous
+scheduleSchema.methods.addAppointment = function (
+  appointment: mongoose.Types.ObjectId
+) {
+  const updatedAppointments = [...this.appointments, appointment];
+  this.appointments = updatedAppointments;
   return this.save();
 };
 
-// Suppression d'un rendez-vous
+// Ajouter une méthode pour supprimer un rendez-vous
 scheduleSchema.methods.removeAppointment = function (schId: mongoose.Types.ObjectId) {
-  const updatedAppointments = this.schedule.appointments.filter(
-    (item: mongoose.Types.ObjectId) => item.toString() !== schId.toString()
-  );
-  
-  this.schedule.appointments = updatedAppointments;
+  const updatedAppointments = this.appointments.filter((item: mongoose.Types.ObjectId) => {
+    return item.toString() !== schId.toString();
+  });
+  this.appointments = updatedAppointments;
   return this.save();
 };
 
-// Export du modèle Schedule
-const Schedule = mongoose.model<ISchedule>("Schedule", scheduleSchema);
+
+// Exporter le modèle
+const Schedule: Model<ISchedule> = mongoose.model("Schedule", scheduleSchema);
 export default Schedule;
