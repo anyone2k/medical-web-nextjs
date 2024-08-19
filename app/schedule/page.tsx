@@ -1,7 +1,17 @@
 'use client';
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
+
+interface Appointment {
+  doctor: string; // Référence à l'ID du médecin
+  appointments: {
+    doctorName: string;
+    appointmentDate: string;
+    appointmentTime: string;
+    reason: string;
+  }[];
+}
 
 const SchedulePage = () => {
   const [formData, setFormData] = useState({
@@ -11,8 +21,21 @@ const SchedulePage = () => {
     reason: "",
   });
 
-  const [result, setResult] = useState(null);
+  const [result, setResult] = useState<Appointment | null>(null); // Typage explicite
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (result) {
+      // Remplir le formulaire avec les données de `result`
+      const appointment = result.appointments[0]; // Supposons que tu veuilles prendre le premier rendez-vous
+      setFormData({
+        doctorName: appointment.doctorName,
+        appointmentDate: appointment.appointmentDate,
+        appointmentTime: appointment.appointmentTime,
+        reason: appointment.reason,
+      });
+    }
+  }, [result]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -72,6 +95,20 @@ const SchedulePage = () => {
           />
         </div>
         <div>
+          <label htmlFor="doctorName" className="block text-sm font-medium text-gray-700">
+            Doctor's Name
+          </label>
+          <input
+            type="text"
+            id="doctorName"
+            name="doctorName"
+            value={formData.doctorName}
+            onChange={handleChange}
+            required
+            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+          />
+        </div>
+        <div>
           <label htmlFor="reason" className="block text-sm font-medium text-gray-700">
             Reason for Appointment
           </label>
@@ -95,10 +132,14 @@ const SchedulePage = () => {
       {result && (
         <div className="mt-6">
           <h3 className="text-lg font-bold">Rendez-vous trouvé :</h3>
-          <p>Médecin : {result.doctorName}</p>
-          <p>Date : {result.appointmentDate}</p>
-          <p>Heure : {result.appointmentTime}</p>
-          <p>Raison : {result.reason}</p>
+          {result.appointments.map((appointment, index) => (
+            <div key={index}>
+              <p>Médecin : {appointment.doctorName}</p>
+              <p>Date : {appointment.appointmentDate}</p>
+              <p>Heure : {appointment.appointmentTime}</p>
+              <p>Raison : {appointment.reason}</p>
+            </div>
+          ))}
         </div>
       )}
     </div>
