@@ -9,8 +9,8 @@ import { motion } from "framer-motion";
 export default function Chat() {
   const { messages, input, handleInputChange, handleSubmit } = useChat({
     api: "api/chat",
-    onError: ({ e }: { e: Error }) => {
-      console.log(e);
+    onError: (error: Error) => {
+      console.log(error);
     },
   });
   const chatParent = useRef<HTMLUListElement>(null);
