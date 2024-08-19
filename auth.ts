@@ -10,6 +10,11 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
   })],
   callbacks:{
     signIn: async ({profile}) => {
+        // Ensure the profile is defined
+        if (!profile || !profile.email || !profile.name) {
+          console.error("Profile or email is undefined");
+          return false; // Prevent sign-in if profile or email is missing
+        }
       // use the Patient model to check if the user is a patient
       await connectDB();
       const isPatient = await Patient.findOne({email: profile.email});
