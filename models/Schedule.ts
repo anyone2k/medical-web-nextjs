@@ -1,8 +1,17 @@
+import mongoose, { Schema, Document } from "mongoose";
 
-const mongoose = require("mongoose");
-const Schema = mongoose.Schema;
+// Interface pour le schéma TypeScript
+interface ISchedule extends Document {
+  schedule: {
+    appointments: mongoose.Types.ObjectId[];
+  };
+  doctor: mongoose.Schema.Types.ObjectId;
+  addAppointment(appointment: mongoose.Types.ObjectId): Promise<ISchedule>;
+  removeAppointment(schId: mongoose.Types.ObjectId): Promise<ISchedule>;
+}
 
-const scheduleSchema = new Schema({
+// Définition du schéma Mongoose
+const scheduleSchema = new Schema<ISchedule>({
   schedule: {
     appointments: [
       {
@@ -19,27 +28,25 @@ const scheduleSchema = new Schema({
   },
 });
 
-// add appointment method
-scheduleSchema.methods.addAppointment = function (appointment) {
-  // if we editing an appointment, we should find it in the list of appointments already
+// Ajout d'un rendez-vous
+scheduleSchema.methods.addAppointment = function (appointment: mongoose.Types.ObjectId) {
   const updatedAppointments = [...this.schedule.appointments];
-
   updatedAppointments.push(appointment);
 
-  const updatedSchedule = {
-    appointments: updatedAppointments,
-  };
-
-  this.schedule = updatedSchedule;
+  this.schedule.appointments = updatedAppointments;
   return this.save();
 };
 
-scheduleSchema.methods.removeAppointment = function ({schId}:{schId:any}) {
-  const updatedSchedule = this.schedule.appointments.filter(({item}:{item:any}) => {
-    return item._id.toString() !== schId.toString();
-  });
-  this.schedule.appointments = updatedSchedule;
+// Suppression d'un rendez-vous
+scheduleSchema.methods.removeAppointment = function (schId: mongoose.Types.ObjectId) {
+  const updatedAppointments = this.schedule.appointments.filter(
+    (item: mongoose.Types.ObjectId) => item.toString() !== schId.toString()
+  );
+  
+  this.schedule.appointments = updatedAppointments;
   return this.save();
 };
 
-module.exports = mongoose.model("Schedule", scheduleSchema);
+// Export du modèle Schedule
+const Schedule = mongoose.model<ISchedule>("Schedule", scheduleSchema);
+export default Schedule;

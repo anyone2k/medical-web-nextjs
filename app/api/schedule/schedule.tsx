@@ -1,6 +1,6 @@
 // pages/api/appointment.ts
 import { NextApiRequest, NextApiResponse } from "next"
-import { Schedule } from "@/models/Schedule";
+import Schedule from "@/models/Schedule";
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
