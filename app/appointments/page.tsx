@@ -23,10 +23,9 @@ const AppointmentForm = () => {
     const fetchDoctors = async () => {
       try {
         const response = await axios.get('http://localhost:10999/api/v1/doctors');
-        console.log('Response from API:', response.data); // Debugger la réponse de l'API
-        // Si la structure de l'API est correcte
+        console.log('Response from API:', response.data);
         if (Array.isArray(response.data.data)) {
-          setDoctors(response.data.data);  // Assignez les données au state
+          setDoctors(response.data.data);
         } else {
           console.error('Data format is not an array');
         }
@@ -42,9 +41,8 @@ const AppointmentForm = () => {
     e.preventDefault();
 
     try {
-      const response = await axios.post('http://localhost:10999/api/v1/appointements', {
-        patientId: '66c2b08ff5456a18f366b02f',
-        doctorId: selectedDoctor,
+      const response = await axios.post('http://localhost:10999/api/v1/appointment', {
+        patient: '66c2b08ff5456a18f366b02f',  // Assurez-vous que l'ID du patient est correct
         dayTime: date,
         duration,
         reason,
@@ -52,6 +50,7 @@ const AppointmentForm = () => {
 
       setMessage('Rendez-vous créé avec succès !');
     } catch (error: any) {
+      console.error("Erreur lors de la création du rendez-vous :", error);
       setMessage(error.response?.data?.message || 'Une erreur s\'est produite.');
     }
   };
