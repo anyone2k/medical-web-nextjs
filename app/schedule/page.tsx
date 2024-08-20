@@ -1,8 +1,14 @@
 'use client';
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { useRouter } from "next/router"; // Import du hook useRouter pour la redirection
+
+interface Appointment {
+  doctorName: string;
+  appointmentDate: string;
+  appointmentTime: string;
+  reason: string;
+}
 
 const SchedulePage = () => {
   const [formData, setFormData] = useState({
@@ -12,8 +18,21 @@ const SchedulePage = () => {
     reason: "",
   });
 
+  const [result, setResult] = useState<Appointment | null>(null); // Typage explicite
   const [error, setError] = useState("");
-  const router = useRouter(); // Utilisation du hook useRouter pour la redirection
+
+  // Utiliser useEffect pour pré-remplir le formulaire avec les données récupérées
+  useEffect(() => {
+    if (result) {
+      // Pré-remplir le formulaire avec les données du rendez-vous récupéré
+      setFormData({
+        doctorName: result.doctorName,
+        appointmentDate: result.appointmentDate,
+        appointmentTime: result.appointmentTime,
+        reason: result.reason,
+      });
+    }
+  }, [result]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -25,19 +44,26 @@ const SchedulePage = () => {
     setError("");
 
     try {
-      // Appel à l'API pour enregistrer le nouveau rendez-vous
-      const response = await axios.post("/api/appointment", formData);
+      // Appel à l'API pour récupérer les données du rendez-vous
+      const response = await axios.get("/api/appointment", {
+        params: {
+          appointmentDate: formData.appointmentDate,
+          appointmentTime: formData.appointmentTime,
+          reason: formData.reason,
+        },
+      });
 
-      // Si la soumission réussit, redirige vers la page de gestion des rendez-vous
-      router.push("/schedule");
+      // Mise à jour du résultat avec les données récupérées
+      setResult(response.data);
     } catch (error) {
-      setError("Erreur lors de la prise du rendez-vous.");
+      setError("Erreur lors de la recherche du rendez-vous.");
+      setResult(null);
     }
   };
 
   return (
     <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded-lg shadow-md">
-      <h2 className="text-2xl font-bold text-center mb-6">Prendre un Nouveau Rendez-vous</h2>
+      <h2 className="text-2xl font-bold text-center mb-6">Rechercher un Rendez-vous</h2>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label htmlFor="appointmentDate" className="block text-sm font-medium text-gray-700">
@@ -98,10 +124,19 @@ const SchedulePage = () => {
           type="submit"
           className="w-full py-2 px-4 bg-indigo-600 text-white font-semibold rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
         >
-          Prendre Rendez-vous
+          Search
         </button>
       </form>
       {error && <p className="text-red-600 mt-4">{error}</p>}
+      {result && (
+        <div className="mt-6">
+          <h3 className="text-lg font-bold">Rendez-vous trouvé :</h3>
+          <p>Médecin : {result.doctorName}</p>
+          <p>Date : {result.appointmentDate}</p>
+          <p>Heure : {result.appointmentTime}</p>
+          <p>Raison : {result.reason}</p>
+        </div>
+      )}
     </div>
   );
 };
