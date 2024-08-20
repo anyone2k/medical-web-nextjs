@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, Suspense, useCallback } from "react";
 import { MapProvider } from "@/providers/map-provider";
 import dynamic from "next/dynamic";
 import axios from "axios";
@@ -8,8 +8,8 @@ import { Doctor } from "@/models/Doctor";
 import ListItem from "@/components/ui/ListItem";
 import SearchBar from "@/components/Searchbar";
 import { AnimatePresence, motion } from "framer-motion";
-import AppointmentForm from "@/app/appointments/page"; // Import du formulaire depuis le dossier `app`
 
+// Dynamically import Maps to enable Suspense
 const Maps = dynamic(() => import("@/components/Map"), { ssr: false });
 
 const DoctorsPage = () => {
@@ -17,8 +17,8 @@ const DoctorsPage = () => {
   const [query, setQuery] = useState("");
   const [selectedOption, setSelectedOption] = useState<Doctor | null>(null);
   const [selectedId, setSelectedId] = useState<number | null>(null);
-  const [showAppointmentForm, setShowAppointmentForm] = useState<boolean>(false); // État pour afficher le formulaire
 
+  // Function to fetch all doctors
   const fetchDoctors = useCallback(async () => {
     try {
       const response = await axios.get("http://localhost:10999/api/v1/doctors");
@@ -28,12 +28,14 @@ const DoctorsPage = () => {
     }
   }, []);
 
+  // Fetch doctors when the component mounts and when the query is empty
   useEffect(() => {
     if (query === "") {
-      fetchDoctors();
+      fetchDoctors(); // Fetch all doctors when query is empty
     }
   }, [query, fetchDoctors]);
 
+  // Function to fetch doctors by query
   const fetchDoctorsByQuery = useCallback(async () => {
     try {
       const response = await axios.get(
@@ -45,11 +47,12 @@ const DoctorsPage = () => {
     }
   }, [query]);
 
+  // Fetch doctors by query with debouncing
   useEffect(() => {
     if (query !== "") {
       const debounceTimeout = setTimeout(() => {
         fetchDoctorsByQuery();
-      }, 500);
+      }, 500); // Debounce API calls
 
       return () => clearTimeout(debounceTimeout);
     }
@@ -58,10 +61,6 @@ const DoctorsPage = () => {
   const handleSelect = (option: Doctor, index: number) => {
     setSelectedOption(option);
     setSelectedId(index);
-  };
-
-  const handleAppointmentClick = () => {
-    setShowAppointmentForm(true); // Affiche le formulaire de rendez-vous
   };
 
   return (
@@ -76,7 +75,7 @@ const DoctorsPage = () => {
           <SearchBar
             setQuery={setQuery}
             query={query}
-            placeholder="Rechercher des médecins..."
+            placeholder="Search for Doctors..."
           />
           <ul className="mt-2 bg-palette-green rounded-md max-h-screen overflow-y-auto no-scrollbar">
             {doctors.map((doctor, index) => (
@@ -105,7 +104,7 @@ const DoctorsPage = () => {
       </motion.div>
 
       <AnimatePresence>
-        {selectedId !== null && !showAppointmentForm && (
+        {selectedId !== null && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -127,36 +126,18 @@ const DoctorsPage = () => {
               <p>{doctors[selectedId].specialisation.name}</p>
               <p>{doctors[selectedId].email}</p>
               <motion.button
-                onClick={handleAppointmentClick} // Affiche le formulaire de rendez-vous
+                onClick={() => setSelectedId(null)}
                 className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg"
               >
-                Prendre rendez-vous
+                Prendre rendez vous
               </motion.button>
               <motion.button
                 onClick={() => setSelectedId(null)}
                 className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg"
               >
-                Fermer
+                Close
               </motion.button>
-            </div>
-          </motion.div>
-        )}
-
-        {showAppointmentForm && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5 }}
-            className="p-6 inset-0 fixed flex items-center justify-center z-50 bg-black rounded-lg shadow-lg bg-opacity-30"
-          >
-            <div className="bg-white p-6 flex-col flex items-center justify-center rounded-lg shadow-lg w-full max-w-md">
-              <AppointmentForm /> {/* Formulaire importé depuis `app` */}
-              <motion.button
-                onClick={() => setShowAppointmentForm(false)} // Ferme le formulaire de rendez-vous
-                className="mt-4 px-4 py-2 bg-red-500 text-white rounded-lg"
-              >
-                Fermer
-              </motion.button>
+            
             </div>
           </motion.div>
         )}
